@@ -629,25 +629,45 @@ class Solver:
         return p
 
     def solve(self, cube: RubiksCube) -> List[str]:
-        """Solve using Two-Phase IDA*. Returns list of move strings.
+        """Solve using Two-Phase IDA*. Returns list of move strings."""
+        # Check piece counts before proceeding
+        counts: Dict[str, int] = {}
+        for f in cube.faces.values():
+            for row in f:
+                for c in row:
+                    counts[c] = counts.get(c, 0) + 1
+        for col, count in counts.items():
+            if count != 9:
+                print(f"  [autosolve] ERROR: Invalid color count for {col}: {count}")
+                return []
 
-        TODO: Implement this method. It should:
-        1. Validate that the cube has exactly 9 of each color
-        2. Call self.precompute() to build move/pruning tables
-        3. Convert the cube to a CubieCube using cube.as_cubie_cube()
-        4. Validate cube parity (corner orientation, edge orientation,
-           permutation parity, no duplicate pieces)
-        5. Run iterative deepening search using self._phase1_search()
-           with increasing max_depth (up to 20)
-        6. Return self._solution if found, or empty list
+        self.precompute()
+        try:
+            cc = cube.as_cubie_cube()
+        except ValueError as e:
+            print(f"  [autosolve] ERROR: {e}")
+            return []
 
-        Available helpers:
-        - encode_co, encode_eo, encode_slice, encode_cp, encode_ep8, encode_eslice
-        - get_permutation_parity(permutation) -> 0 or 1
-        - self.precompute() builds all move/pruning tables
-        - self._phase1_search(cubie_cube, depth, last_move) -> bool
-        """
-        raise NotImplementedError("TODO: implement the solve method")
+        # Parity checks
+        if sum(cc.co) % 3 != 0:
+            print("  [autosolve] ERROR: Invalid corner orientation parity")
+            return []
+        if sum(cc.eo) % 2 != 0:
+            print("  [autosolve] ERROR: Invalid edge orientation parity")
+            return []
+        if get_permutation_parity(cc.cp) != get_permutation_parity(cc.ep):
+            print("  [autosolve] ERROR: Invalid permutation parity (corners vs edges)")
+            return []
+        if len(set(cc.cp)) != 8 or len(set(cc.ep)) != 12:
+            print("  [autosolve] ERROR: Duplicate pieces detected")
+            return []
+
+        # TODO: Run iterative deepening Phase 1 search.
+        # Use self._phase1_search(cc, max_depth, last_move) which returns True
+        # if a solution is found (stored in self._solution).
+        # Reset self._solution before each depth attempt.
+        # Try increasing max_depth values up to 20.
+        raise NotImplementedError("TODO: implement the iterative deepening search loop")
 
     def _phase1_search(self, cc: CubieCube, depth: int, last_move: int) -> bool:
         co_idx = encode_co(cc.co)
