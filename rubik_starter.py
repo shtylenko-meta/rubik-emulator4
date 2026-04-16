@@ -631,97 +631,31 @@ class Solver:
     def solve(self, cube: RubiksCube) -> List[str]:
         """Solve using Two-Phase IDA*. Returns list of move strings.
 
-        TODO: Implement this method. It should:
+        TODO: Implement this method.
         """
         raise NotImplementedError("TODO: implement the solve method")
 
     def _phase1_search(self, cc: CubieCube, depth: int, last_move: int) -> bool:
-        co_idx = encode_co(cc.co)
-        eo_idx = encode_eo(cc.eo)
-        sl_idx = encode_slice(cc.ep)
+        """Phase 1 IDA* search. Returns True if solution found (stored in self._solution).
 
-        # Check if Phase 1 goal
-        if co_idx == 0 and eo_idx == 0 and sl_idx == _SOLVED_SLICE_IDX:
-            # Phase 1 done. Run Phase 2.
-            return self._phase2(cc, 30 - len(self._solution))
-
-        if depth == 0:
-            return False
-
-        # Pruning: max of the two heuristics
-        h1 = self.prun_co_sl[co_idx, sl_idx]
-        h2 = self.prun_eo_sl[eo_idx, sl_idx]
-        if max(h1, h2) > depth:
-            return False
-
-        for mi, m in enumerate(MOVE_NAMES):
-            face_idx = mi // 3  # 0=U,1=R,2=F,3=D,4=L,5=B
-            # Skip redundant moves
-            if last_move >= 0:
-                last_face = last_move // 3
-                if face_idx == last_face:
-                    continue
-                # Don't do opposite face if same axis and wrong order
-                # U(0)/D(3), R(1)/L(4), F(2)/B(5)
-                if (face_idx, last_face) in ((3,0), (4,1), (5,2)):
-                    continue
-
-            ncc = cc.copy()
-            ncc.apply(m)
-            self._solution.append(m)
-            if self._phase1_search(ncc, depth - 1, mi):
-                return True
-            self._solution.pop()
-
-        return False
+        TODO: Implement this method.
+        """
+        raise NotImplementedError("TODO: implement Phase 1 search")
 
     def _phase2(self, cc: CubieCube, max_depth: int) -> bool:
-        """Phase 2: solve remaining permutation with restricted moves."""
-        print(f"    Phase 1 solved in {len(self._solution)} moves. Starting Phase 2 (budget={max_depth})...")
-        cp_idx = encode_cp(cc.cp)
-        ep8_idx = encode_ep8(cc.ep)
-        esl_idx = encode_eslice(cc.ep)
+        """Phase 2 entry point: solve remaining permutation with restricted moves.
 
-        for d in range(min(max_depth + 1, 20)):
-            path = self._phase2_search(None, d, -1, cp_idx, ep8_idx, esl_idx)
-            if path is not None:
-                self._solution.extend(path)
-                return True
-        return False
+        TODO: Implement this method.
+        """
+        raise NotImplementedError("TODO: implement Phase 2 entry")
 
     def _phase2_search(self, cc_unused: Optional[CubieCube], depth: int, last_move: int,
                        cp_idx: int, ep8_idx: int, esl_idx: int) -> Optional[List[str]]:
-        # Goal check using coords is much faster than full cc.is_solved()
-        if cp_idx == 0 and ep8_idx == 0 and esl_idx == 0:
-            return []
-        if depth == 0:
-            return None
+        """Phase 2 IDA* search using coordinate-based move tables.
 
-        # Pruning with combined tables
-        h1 = self.prun_cp_esl[cp_idx, esl_idx]
-        h2 = self.prun_ep8_esl[ep8_idx, esl_idx]
-        if max(h1, h2) > depth:
-            return None
-
-        for pi, m in enumerate(P2_MOVE_NAMES):
-            mi = self._p2_mi[pi]
-            face_idx = mi // 3
-            if last_move >= 0:
-                last_face = last_move // 3
-                if face_idx == last_face:
-                    continue
-                if (face_idx, last_face) in ((3,0), (4,1), (5,2)):
-                    continue
-
-            ncp = self.mt_cp[cp_idx, pi]
-            nep = self.mt_ep8[ep8_idx, pi]
-            nesl = self.mt_esl[esl_idx, pi]
-
-            path = self._phase2_search(None, depth - 1, mi, ncp, nep, nesl)
-            if path is not None:
-                return [m] + path
-
-        return None
+        TODO: Implement this method.
+        """
+        raise NotImplementedError("TODO: implement Phase 2 search")
 
 
 _SOLVER = Solver()
