@@ -632,23 +632,6 @@ class Solver:
         """Solve using Two-Phase IDA*. Returns list of move strings.
 
         TODO: Implement this method. It should:
-        1. Validate that the cube has exactly 9 of each color
-        2. Call self.precompute() to build move/pruning tables
-        3. Convert the cube to a CubieCube using cube.as_cubie_cube()
-        4. Validate cube parity (corner orientation sum % 3 == 0,
-           edge orientation sum % 2 == 0, corner and edge permutation
-           parities match, no duplicate pieces)
-        5. Run iterative deepening search using self._phase1_search()
-           with increasing max_depth (up to 20)
-        6. Return self._solution if found, or empty list
-
-        Available helpers:
-        - cube.faces: dict of face -> 3x3 numpy array
-        - cube.as_cubie_cube() -> CubieCube with .cp, .co, .ep, .eo
-        - get_permutation_parity(permutation) -> 0 or 1
-        - self.precompute() builds all move/pruning tables
-        - self._phase1_search(cubie_cube, depth, last_move) -> bool
-          (stores result in self._solution)
         """
         raise NotImplementedError("TODO: implement the solve method")
 
