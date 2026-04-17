@@ -106,11 +106,55 @@ class RubiksCube:
         f[d][rd], f[c][rc], f[b][rb], f[a][ra] = f[c][rc], f[b][rb], f[a][ra], tmp
 
     def apply(self, move: str) -> None:
-        """Apply a move to the facelet cube. Handles U, D, F, B, R, L and suffixes ', 2.
-
-        TODO: Implement this method.
-        """
-        raise NotImplementedError("TODO: implement RubiksCube.apply")
+        m = move.strip(); face = m[0]; suffix = m[1:]
+        times = 3 if suffix == "'" else (2 if suffix == "2" else 1)
+        for _ in range(times):
+            if face == 'U':
+                self.faces['U'] = np.rot90(self.faces['U'], k=1)
+                self._cycle_rows('L', 0, 'F', 0, 'R', 0, 'B', 0)
+            elif face == 'D':
+                self.faces['D'] = np.rot90(self.faces['D'], k=1)
+                self._cycle_rows('F', 2, 'L', 2, 'B', 2, 'R', 2)
+            elif face == 'F':
+                self.faces['F'] = np.rot90(self.faces['F'], k=-1)
+                u2 = self.faces['U'][2].copy()
+                rc0 = self.faces['R'][:, 0].copy()
+                d0 = self.faces['D'][0].copy()
+                lc2 = self.faces['L'][:, 2].copy()
+                self.faces['U'][2] = lc2[::-1]
+                self.faces['R'][:, 0] = u2
+                self.faces['D'][0] = rc0[::-1]
+                self.faces['L'][:, 2] = d0
+            elif face == 'B':
+                self.faces['B'] = np.rot90(self.faces['B'], k=-1)
+                u0 = self.faces['U'][0].copy()
+                lc0 = self.faces['L'][:, 0].copy()
+                d2 = self.faces['D'][2].copy()
+                rc2 = self.faces['R'][:, 2].copy()
+                self.faces['L'][:, 0] = u0[::-1]
+                self.faces['D'][2] = lc0
+                self.faces['R'][:, 2] = d2[::-1]
+                self.faces['U'][0] = rc2
+            elif face == 'R':
+                self.faces['R'] = np.rot90(self.faces['R'], k=-1)
+                fc2 = self.faces['F'][:, 2].copy()
+                uc2 = self.faces['U'][:, 2].copy()
+                bc0 = self.faces['B'][:, 0].copy()
+                dc2 = self.faces['D'][:, 2].copy()
+                self.faces['U'][:, 2] = fc2
+                self.faces['B'][:, 0] = uc2[::-1]
+                self.faces['D'][:, 2] = bc0[::-1]
+                self.faces['F'][:, 2] = dc2
+            elif face == 'L':
+                self.faces['L'] = np.rot90(self.faces['L'], k=1)
+                fc0 = self.faces['F'][:, 0].copy()
+                uc0 = self.faces['U'][:, 0].copy()
+                bc2 = self.faces['B'][:, 2].copy()
+                dc0 = self.faces['D'][:, 0].copy()
+                self.faces['U'][:, 0] = fc0
+                self.faces['B'][:, 2] = uc0[::-1]
+                self.faces['D'][:, 0] = bc2[::-1]
+                self.faces['F'][:, 0] = dc0
 
     def is_solved(self) -> bool:
         return all(np.all(f == f[1, 1]) for f in self.faces.values())
@@ -148,11 +192,20 @@ class CubieCube:
         return CubieCube(self.cp[:], self.co[:], self.ep[:], self.eo[:])
 
     def apply(self, move_name: str) -> None:
-        """Apply a named move (e.g. 'R', "R'", 'R2') to the cubie cube.
-
-        TODO: Implement this method.
-        """
-        raise NotImplementedError("TODO: implement CubieCube.apply")
+        """Apply a named move (e.g. 'R', "R'", 'R2')."""
+        face = move_name[0]
+        suffix = move_name[1:] if len(move_name) > 1 else ''
+        times = 3 if suffix == "'" else (2 if suffix == '2' else 1)
+        cp_f = _CORNER_PERM[face]
+        co_f = _CORNER_ORIENT[face]
+        ep_f = _EDGE_PERM[face]
+        eo_f = _EDGE_ORIENT[face]
+        for _ in range(times):
+            new_cp = [self.cp[cp_f[i]] for i in range(8)]
+            new_co = [(self.co[cp_f[i]] + co_f[i]) % 3 for i in range(8)]
+            new_ep = [self.ep[ep_f[i]] for i in range(12)]
+            new_eo = [(self.eo[ep_f[i]] + eo_f[i]) % 2 for i in range(12)]
+            self.cp, self.co, self.ep, self.eo = new_cp, new_co, new_ep, new_eo
 
     def is_solved(self) -> bool:
         return (self.cp == list(range(8)) and self.co == [0]*8 and
